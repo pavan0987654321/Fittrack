@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 101 116 243;
+    --color-accent: 249 115 22;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  body {
+    @apply bg-dark-900 text-white font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(101, 116, 243, 0.15), transparent),
+      radial-gradient(ellipse 50% 30% at 80% 80%, rgba(249, 115, 22, 0.05), transparent);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* ── Fix browser autofill making text invisible on dark inputs ── */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px #0d1424 inset !important;
+    box-shadow: 0 0 0px 1000px #0d1424 inset !important;
+    caret-color: #ffffff;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
+  /* Force all inputs to always show white text */
+  input, select, textarea {
+    color: #ffffff;
+    caret-color: #ffffff;
+  }
+}
+
+@layer components {
+  /* Card styles */
+  .card {
+    @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl;
+  }
+
+  .card-hover {
+    @apply card transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-primary-500/10 hover:-translate-y-0.5;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-primary-500/25 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply bg-white/10 hover:bg-white/20 text-white font-medium px-6 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-all duration-200 active:scale-95;
+  }
+
+  .btn-danger {
+    @apply bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-medium px-6 py-2.5 rounded-xl border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95;
+  }
+
+  .btn-success {
+    @apply bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 font-medium px-5 py-2 rounded-xl border border-emerald-500/20 transition-all duration-200;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:border-primary-500/50 focus:bg-white/10 transition-all duration-200;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-white/70 mb-1.5;
+  }
+
+  /* Floating Input System */
+  .floating-input {
+    @apply block w-full px-4 pb-2 pt-6 bg-white/5 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:border-primary-500/50 focus:bg-white/10 transition-all duration-200;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .floating-label {
+    @apply absolute text-[13px] font-medium text-white/40 duration-300 transform -translate-y-3 scale-90 top-4 z-10 origin-[0] left-12 
+           peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-white/30
+           peer-focus:scale-90 peer-focus:-translate-y-3 peer-focus:text-primary-400 pointer-events-none;
+  }
+
+  /* Badge styles */
+  .badge-active {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .badge-inactive {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/15 text-red-400 border border-red-500/30;
+  }
+
+  .badge-pending {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30;
+  }
+
+  .badge-paid {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30;
+  }
+
+  /* Stat card */
+  .stat-card {
+    @apply card p-6 flex flex-col gap-2;
+  }
+
+  /* Page header */
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-title {
+    @apply text-2xl font-display font-bold text-white;
+  }
+
+  .page-subtitle {
+    @apply text-white/50 mt-1;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 30px rgba(101, 116, 243, 0.3);
+  }
+}
