@@ -16,8 +16,11 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const app = express();
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
+const allowedOrigins = ['http://localhost:5173'];
+if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
+
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite dev server
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json());
