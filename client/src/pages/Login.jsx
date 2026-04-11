@@ -229,6 +229,7 @@ export default function Login() {
                 value={form.password}
                 onChange={handleChange}
                 required
+                minLength={6}
                 className="floating-input peer pl-12 pr-12"
               />
               <label htmlFor="password" className="floating-label">Password</label>
