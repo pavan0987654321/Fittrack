@@ -16,11 +16,14 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const app = express();
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
-const allowedOrigins = ['http://localhost:5173'];
-if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
-
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin || origin.includes('localhost') || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
