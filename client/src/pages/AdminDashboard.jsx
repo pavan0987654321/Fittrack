@@ -35,7 +35,7 @@ function StatCard({ icon: Icon, label, value, color, info }) {
       animate={{ opacity: 1, y: 0 }}
       className="card p-5 lg:p-6 card-hover relative overflow-hidden group"
     >
-      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transform group-hover:scale-110 transition-transform duration-500">
+      <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none transform group-hover:scale-110 transition-transform duration-500">
         <Icon className="w-24 h-24" />
       </div>
       <div className="flex items-start justify-between relative z-10">
@@ -43,7 +43,7 @@ function StatCard({ icon: Icon, label, value, color, info }) {
           <Icon className="w-6 h-6" />
         </div>
         {info && (
-          <div className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-xs font-medium text-white/60">
+          <div className="bg-dark-900/60 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-xs font-medium text-white/70 shadow-sm">
             {info}
           </div>
         )}
