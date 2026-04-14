@@ -7,11 +7,17 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Route imports
-const authRoutes = require('./routes/authRoutes');
-const memberRoutes = require('./routes/memberRoutes');
-const trainerRoutes = require('./routes/trainerRoutes');
-const planRoutes = require('./routes/planRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
+const authRoutes         = require('./routes/authRoutes');
+const memberRoutes       = require('./routes/memberRoutes');
+const trainerRoutes      = require('./routes/trainerRoutes');
+const planRoutes         = require('./routes/planRoutes');
+const paymentRoutes      = require('./routes/paymentRoutes');
+const progressRoutes     = require('./routes/progressRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const attendanceRoutes   = require('./routes/attendanceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const analyticsRoutes    = require('./routes/analyticsRoutes');
+const { checkExpiries }  = require('./controllers/notificationController');
 
 const app = express();
 
@@ -30,11 +36,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
-app.use('/api/members', memberRoutes);
-app.use('/api/trainers', trainerRoutes);
-app.use('/api/plans', planRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/auth',          authRoutes);
+app.use('/api/members',       memberRoutes);
+app.use('/api/trainers',      trainerRoutes);
+app.use('/api/plans',         planRoutes);
+app.use('/api/payments',      paymentRoutes);
+app.use('/api/progress',      progressRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/attendance',    attendanceRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics',     analyticsRoutes);
+
+// Run expiry checker once a day (86400000 ms) and once on startup
+setTimeout(checkExpiries, 5000); // Short delay on startup to ensure DB is connected
+setInterval(checkExpiries, 24 * 60 * 60 * 1000);
 
 // Health check
 app.get('/api/health', (req, res) => {

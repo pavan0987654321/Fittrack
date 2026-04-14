@@ -65,34 +65,47 @@ const login = async (req, res) => {
   }
 };
 
+// ── Helper: build member profile response ────────────────────────────────────
+function buildMemberProfile(user, memberRecord) {
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    // Member-specific
+    memberId:        memberRecord._id,
+    membershipPlan:  memberRecord.membershipPlan,
+    trainerAssigned: memberRecord.trainerAssigned,
+    expiryDate:      memberRecord.expiryDate,
+    joinDate:        memberRecord.joinDate,
+    status:          memberRecord.status,
+    phone:           memberRecord.phone,
+    // Fitness fields
+    age:             memberRecord.age,
+    gender:          memberRecord.gender,
+    height:          memberRecord.height,
+    weight:          memberRecord.weight,
+    bmi:             memberRecord.bmi,
+    fitnessGoal:     memberRecord.fitnessGoal,
+    address:         memberRecord.address,
+  };
+}
+
 // @desc    Get current user profile
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
   try {
     const user = req.user;
-    // For members, also fetch their Member record (plan, expiry, trainer)
     if (user.role === 'member') {
       const Member = require('../models/Member');
       const memberRecord = await Member.findOne({ email: user.email })
         .populate('membershipPlan', 'name price duration')
         .populate('trainerAssigned', 'name specialty phone');
-      
+
       if (memberRecord) {
-        return res.json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          // Overlay member-specific fields
-          memberId: memberRecord._id,
-          membershipPlan: memberRecord.membershipPlan,
-          trainerAssigned: memberRecord.trainerAssigned,
-          expiryDate: memberRecord.expiryDate,
-          status: memberRecord.status,
-          phone: memberRecord.phone,
-          joinDate: memberRecord.joinDate,
-        });
+        return res.json(buildMemberProfile(user, memberRecord));
       }
     }
     res.json(user);
@@ -101,7 +114,7 @@ const getMe = async (req, res) => {
   }
 };
 
-// @desc    Update profile
+// @desc    Update profile (and Member fitness data if caller is a member)
 // @route   PUT /api/auth/me
 // @access  Private
 const updateProfile = async (req, res) => {
@@ -114,6 +127,63 @@ const updateProfile = async (req, res) => {
     if (req.body.password) user.password = req.body.password;
 
     const updated = await user.save();
+
+    // For members – also update their Member doc & log a Progress entry
+    if (user.role === 'member') {
+      const Member = require('../models/Member');
+      const Progress = require('../models/Progress');
+
+      const { age, height, weight, fitnessGoal, gender, phone, address } = req.body;
+      const fitnessUpdate = {};
+      if (age          !== undefined) fitnessUpdate.age          = age === '' ? null : Number(age);
+      if (height       !== undefined) fitnessUpdate.height       = height === '' ? null : Number(height);
+      if (weight       !== undefined) fitnessUpdate.weight       = weight === '' ? null : Number(weight);
+      if (fitnessGoal  !== undefined) fitnessUpdate.fitnessGoal  = fitnessGoal;
+      if (gender       !== undefined) fitnessUpdate.gender       = gender;
+      if (phone        !== undefined) fitnessUpdate.phone        = phone;
+      if (address      !== undefined) fitnessUpdate.address      = address;
+
+      // Recalculate BMI inline if both are strictly valid numbers
+      if (typeof fitnessUpdate.weight === 'number' && fitnessUpdate.weight > 0 && 
+          typeof fitnessUpdate.height === 'number' && fitnessUpdate.height > 0) {
+        const hm = fitnessUpdate.height / 100;
+        fitnessUpdate.bmi = Math.round((fitnessUpdate.weight / (hm * hm)) * 10) / 10;
+      } else if (fitnessUpdate.weight === null || fitnessUpdate.height === null) {
+        fitnessUpdate.bmi = null;
+      }
+
+      let memberRecord = null;
+      if (Object.keys(fitnessUpdate).length > 0) {
+        fitnessUpdate.name = updated.name;
+        
+        memberRecord = await Member.findOneAndUpdate(
+          { email: user.email },
+          { $set: fitnessUpdate },
+          { new: true, runValidators: true, upsert: true }
+        )
+          .populate('membershipPlan', 'name price duration')
+          .populate('trainerAssigned', 'name specialty phone');
+
+        // Log progress whenever weight is updated
+        if (weight !== undefined && weight !== '' && memberRecord) {
+          await Progress.create({ memberId: memberRecord._id, weight: Number(weight) });
+        }
+      }
+
+      if (!memberRecord) {
+        memberRecord = await Member.findOne({ email: user.email })
+          .populate('membershipPlan', 'name price duration')
+          .populate('trainerAssigned', 'name specialty phone');
+      }
+
+      if (memberRecord) {
+        return res.json({
+          ...buildMemberProfile(updated, memberRecord),
+          token: generateToken(updated._id),
+        });
+      }
+    }
+
     res.json({
       _id: updated._id,
       name: updated.name,
@@ -122,8 +192,14 @@ const updateProfile = async (req, res) => {
       token: generateToken(updated._id),
     });
   } catch (error) {
+    if (error.name === 'ValidationError' || error.errors) {
+      const messages = Object.values(error.errors || {}).map(val => val.message);
+      return res.status(400).json({ message: messages.length ? messages.join(', ') : error.message });
+    }
+    console.error('Profile Update Error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 module.exports = { register, login, getMe, updateProfile };
+

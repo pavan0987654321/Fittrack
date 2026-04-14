@@ -1,5 +1,7 @@
 const Payment = require('../models/Payment');
 const Member = require('../models/Member');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // @desc    Get all payments
 // @route   GET /api/payments
@@ -46,6 +48,21 @@ const getPayment = async (req, res) => {
 const createPayment = async (req, res) => {
   try {
     const payment = await Payment.create(req.body);
+
+    if (payment.status === 'paid' && payment.memberId) {
+      const member = await Member.findById(payment.memberId);
+      if (member) {
+        const user = await User.findOne({ email: member.email });
+        if (user) {
+          await Notification.create({
+            userId: user._id,
+            message: `A payment of ₹${payment.amount} has been successfully recorded.`,
+            type: 'success',
+          });
+        }
+      }
+    }
+
     res.status(201).json(payment);
   } catch (error) {
     res.status(400).json({ message: 'Error creating payment', error: error.message });
@@ -57,10 +74,28 @@ const createPayment = async (req, res) => {
 // @access  Private/Admin
 const updatePayment = async (req, res) => {
   try {
+    const originalPayment = await Payment.findById(req.params.id);
+    const wasPaid = originalPayment?.status === 'paid';
+
     const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, {
       new: true, runValidators: true,
     });
     if (!payment) return res.status(404).json({ message: 'Payment not found' });
+
+    if (!wasPaid && payment.status === 'paid' && payment.memberId) {
+      const member = await Member.findById(payment.memberId);
+      if (member) {
+        const user = await User.findOne({ email: member.email });
+        if (user) {
+          await Notification.create({
+            userId: user._id,
+            message: `Your payment of ₹${payment.amount} has been successfully updated to Paid.`,
+            type: 'success',
+          });
+        }
+      }
+    }
+
     res.json(payment);
   } catch (error) {
     res.status(400).json({ message: 'Error updating payment', error: error.message });

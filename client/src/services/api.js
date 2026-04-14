@@ -73,4 +73,46 @@ export const paymentService = {
   getStats: () => API.get('/payments/stats'),
 };
 
+// ─── Progress ──────────────────────────────────────────────────────────────────
+export const progressService = {
+  getMyProgress: () => API.get('/progress/me'),
+  getByMember: (memberId) => API.get(`/progress/${memberId}`),
+  add: (data) => API.post('/progress', data),
+  delete: (id) => API.delete(`/progress/${id}`),
+};
+
+// ─── Subscriptions ─────────────────────────────────────────────────────────────
+export const subscriptionService = {
+  createRequest: (data) => API.post('/subscriptions/request', data),
+  getAll: (params) => API.get('/subscriptions', { params }),
+  getPendingCount: () => API.get('/subscriptions/pending-count'),
+  getMyRequests: () => API.get('/subscriptions/my'),
+  approve: (id) => API.patch(`/subscriptions/${id}/approve`),
+  reject: (id, reason) => API.patch(`/subscriptions/${id}/reject`, { reason }),
+};
+
+// ─── Attendance ────────────────────────────────────────────────────────────────
+export const attendanceService = {
+  mark: (data) => API.post('/attendance', data),
+  getToday: () => API.get('/attendance/today'),
+  getMyHistory: (params) => API.get('/attendance/me', { params }),
+  getMemberHistory: (memberId, params) => API.get(`/attendance/member/${memberId}`, { params }),
+  getStats: (memberId) => API.get(`/attendance/stats/${memberId}`),
+  getAll: (params) => API.get('/attendance', { params }),
+};
+
+// ─── Notifications ─────────────────────────────────────────────────────────────
+export const notificationService = {
+  getMyNotifications: () => API.get('/notifications'),
+  markAsRead: (id) => API.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => API.patch('/notifications/read-all'),
+  checkExpiries: () => API.post('/notifications/check-expiries'), // Usually admin or cron
+};
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+export const analyticsService = {
+  getDashboard: (params) => API.get('/analytics', { params }), // accepts timeframe
+};
+
 export default API;
+

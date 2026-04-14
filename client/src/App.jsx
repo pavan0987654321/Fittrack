@@ -11,6 +11,7 @@ import Members from './pages/Members';
 import Trainers from './pages/Trainers';
 import Plans from './pages/Plans';
 import Payments from './pages/Payments';
+import Attendance from './pages/Attendance';
 
 // Role-based Protected route wrapper
 function RoleProtectedRoute({ children, allowedRoles }) {
@@ -114,6 +115,14 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={['admin']}>
               <Payments />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance"
+          element={
+            <RoleProtectedRoute allowedRoles={['admin', 'trainer']}>
+              <Attendance />
             </RoleProtectedRoute>
           }
         />

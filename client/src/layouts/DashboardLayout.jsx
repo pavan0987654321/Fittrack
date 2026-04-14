@@ -4,21 +4,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Users, Dumbbell, CreditCard, UserCheck,
   LogOut, Menu, X, ChevronRight, Bell, Search,
-  Zap,
+  Zap, CheckSquare,
 } from 'lucide-react';
 import useAuthStore from '../context/useAuthStore';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 const adminNav = [
   { path: '/admin-dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/members', label: 'Members', icon: Users },
-  { path: '/trainers', label: 'Trainers', icon: UserCheck },
-  { path: '/plans', label: 'Plans', icon: Dumbbell },
-  { path: '/payments', label: 'Payments', icon: CreditCard },
+  { path: '/members',         label: 'Members',   icon: Users },
+  { path: '/trainers',        label: 'Trainers',  icon: UserCheck },
+  { path: '/plans',           label: 'Plans',     icon: Dumbbell },
+  { path: '/payments',        label: 'Payments',  icon: CreditCard },
+  { path: '/attendance',      label: 'Attendance', icon: CheckSquare },
 ];
 
 const trainerNav = [
-  { path: '/trainer-dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/members', label: 'My Members', icon: Users },
+  { path: '/trainer-dashboard', label: 'Dashboard',  icon: LayoutDashboard },
+  { path: '/members',           label: 'My Members', icon: Users },
+  { path: '/attendance',        label: 'Attendance', icon: CheckSquare },
 ];
 
 const memberNav = [
@@ -180,10 +183,7 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
           <div className="flex items-center gap-4 relative">
-            <button className="relative p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-all">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-            </button>
+            <NotificationDropdown />
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}

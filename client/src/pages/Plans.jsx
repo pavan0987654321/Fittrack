@@ -5,6 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import { planService } from '../services/api';
 import useAuthStore from '../context/useAuthStore';
 import PlanModal from '../components/PlanModal';
+import SubscribeModal from '../components/SubscribeModal';
 import toast from 'react-hot-toast';
 
 const planColors = [
@@ -22,6 +23,10 @@ export default function Plans() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
+  // Subscribe modal state
+  const [showSubscribe, setShowSubscribe]           = useState(false);
+  const [subscribeDefaultPlan, setSubscribeDefaultPlan] = useState('');
+
   const fetchPlans = async () => {
     setLoading(true);
     try {
@@ -35,11 +40,11 @@ export default function Plans() {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this plan?')) return;
-    try { 
-      await planService.delete(id); 
+    try {
+      await planService.delete(id);
       toast.success('Plan deleted successfully');
-      fetchPlans(); 
-    } catch { toast.error('Failed to delete plan') }
+      fetchPlans();
+    } catch { toast.error('Failed to delete plan'); }
   };
 
   const toggleStatus = async (plan) => {
@@ -47,20 +52,17 @@ export default function Plans() {
       await planService.update(plan._id, { status: plan.status === 'active' ? 'inactive' : 'active' });
       toast.success(`Plan ${plan.status === 'active' ? 'deactivated' : 'activated'}!`);
       fetchPlans();
-    } catch { toast.error('Failed to update status') }
+    } catch { toast.error('Failed to update status'); }
   };
 
-  const openAddModal = () => {
-    setSelectedPlan(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (plan) => {
-    setSelectedPlan(plan);
-    setIsModalOpen(true);
-  };
-
+  const openAddModal = () => { setSelectedPlan(null); setIsModalOpen(true); };
+  const openEditModal = (plan) => { setSelectedPlan(plan); setIsModalOpen(true); };
   const handleModalSuccess = () => fetchPlans();
+
+  const handleSubscribeClick = (planId) => {
+    setSubscribeDefaultPlan(planId);
+    setShowSubscribe(true);
+  };
 
   return (
     <DashboardLayout>
@@ -68,7 +70,9 @@ export default function Plans() {
         <div>
           <h1 className="page-title">{isAdmin ? 'Membership Plans' : 'Explore Plans'}</h1>
           <p className="page-subtitle">
-            {isAdmin ? 'Create and manage gym membership plans.' : 'Browse our options and choose the perfect plan for you.'}
+            {isAdmin
+              ? 'Create and manage gym membership plans.'
+              : 'Browse our options and choose the perfect plan for you.'}
           </p>
         </div>
         {isAdmin && (
@@ -115,8 +119,7 @@ export default function Plans() {
                   <button onClick={() => toggleStatus(plan)} className="text-white/40 hover:text-white transition-colors">
                     {plan.status === 'active'
                       ? <ToggleRight className="w-7 h-7 text-emerald-400" />
-                      : <ToggleLeft className="w-7 h-7" />
-                    }
+                      : <ToggleLeft className="w-7 h-7" />}
                   </button>
                 )}
               </div>
@@ -141,17 +144,29 @@ export default function Plans() {
                 <div className="flex gap-1 ml-auto">
                   {isAdmin ? (
                     <>
-                      <button onClick={() => openEditModal(plan)} className="p-2 rounded-lg text-white/40 hover:text-primary-400 hover:bg-primary-500/10 transition-all">
+                      <button
+                        onClick={() => openEditModal(plan)}
+                        className="p-2 rounded-lg text-white/40 hover:text-primary-400 hover:bg-primary-500/10 transition-all"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(plan._id)} className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                      <button
+                        onClick={() => handleDelete(plan._id)}
+                        className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </>
                   ) : (
-                    <button className="btn-primary px-4 py-1.5 text-xs flex items-center gap-1.5">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handleSubscribeClick(plan._id)}
+                      disabled={plan.status === 'inactive'}
+                      className="btn-primary px-4 py-1.5 text-xs flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
                       Subscribe <ArrowRight className="w-3 h-3" />
-                    </button>
+                    </motion.button>
                   )}
                 </div>
               </div>
@@ -160,11 +175,20 @@ export default function Plans() {
         </div>
       )}
 
+      {/* Admin plan modal */}
       <PlanModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         plan={selectedPlan}
         onSuccess={handleModalSuccess}
+      />
+
+      {/* Member subscribe modal */}
+      <SubscribeModal
+        isOpen={showSubscribe}
+        onClose={() => setShowSubscribe(false)}
+        defaultPlanId={subscribeDefaultPlan}
+        onSuccess={() => {}}
       />
     </DashboardLayout>
   );
