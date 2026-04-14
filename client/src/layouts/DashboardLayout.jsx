@@ -53,13 +53,39 @@ export default function DashboardLayout({ children }) {
     navigate('/login');
   };
 
+  const isMobile = window.innerWidth < 768;
+
+  // Auto-close sidebar on mobile after navigating
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname]);
+
   return (
-    <div className="flex h-screen overflow-hidden bg-dark-900">
+    <div className="flex h-screen overflow-hidden bg-dark-900 relative">
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {isMobile && sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 z-30 backdrop-blur-sm md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <motion.aside
-        animate={{ width: sidebarOpen ? 260 : 72 }}
+        initial={false}
+        animate={{ 
+          width: sidebarOpen ? 260 : isMobile ? 0 : 72,
+          x: isMobile && !sidebarOpen ? -260 : 0
+        }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="relative flex flex-col bg-dark-850 border-r border-white/5 z-10 flex-shrink-0"
+        className={`absolute md:relative flex flex-col bg-dark-850 border-r border-white/5 z-40 h-full flex-shrink-0 ${isMobile && !sidebarOpen ? 'pointer-events-none' : ''}`}
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 h-16 border-b border-white/5">
@@ -171,9 +197,15 @@ export default function DashboardLayout({ children }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="h-16 border-b border-white/5 bg-dark-900/80 backdrop-blur-sm flex items-center justify-between px-6 flex-shrink-0">
+        <header className="h-16 border-b border-white/5 bg-dark-900/80 backdrop-blur-sm flex items-center justify-between px-4 md:px-6 flex-shrink-0">
           <div className="flex items-center gap-3 flex-1">
-            <div className="relative flex-1 max-w-sm">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-2 -ml-2 text-white/50 hover:text-white transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="relative flex-1 max-w-sm hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
               <input
                 type="text"

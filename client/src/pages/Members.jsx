@@ -136,9 +136,10 @@ export default function Members() {
             <p className="text-sm mt-1">Add your first member to get started</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/5">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead>
+                <tr className="border-b border-white/5">
                 {['Member', 'Contact', 'Plan', 'Expiry', 'Status', 'Actions'].map((h) => (
                   <th key={h} className="text-left text-xs font-medium text-white/40 px-4 py-3 uppercase tracking-wider">{h}</th>
                 ))}
@@ -198,6 +199,7 @@ export default function Members() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </motion.div>
 
