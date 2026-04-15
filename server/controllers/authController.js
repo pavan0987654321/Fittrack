@@ -18,7 +18,17 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    const user = await User.create({ name, email, password, role: role || 'member' });
+    const adminEmails = ['kppatelkppatel2786@gmail.com', 'gajulapavan29@gmail.com'];
+    let assignedRole = role || 'member';
+    
+    // Auto-assign admin if email matches, or restrict admin if they asked for it but aren't in the list
+    if (adminEmails.includes(email.toLowerCase())) {
+      assignedRole = 'admin';
+    } else if (assignedRole === 'admin') {
+      assignedRole = 'member';
+    }
+
+    const user = await User.create({ name, email, password, role: assignedRole });
 
     res.status(201).json({
       _id: user._id,
