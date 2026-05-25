@@ -46,13 +46,13 @@ export default function Trainers() {
 
   return (
     <DashboardLayout>
-      <div className="page-header flex items-start justify-between">
+      <div className="page-header flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="page-title">Trainers</h1>
           <p className="page-subtitle">Manage your certified fitness trainers.</p>
         </div>
         <button onClick={openAddModal} className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Trainer
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add </span>Trainer
         </button>
       </div>
 

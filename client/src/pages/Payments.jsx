@@ -83,13 +83,13 @@ export default function Payments() {
 
   return (
     <DashboardLayout>
-      <div className="page-header flex items-start justify-between">
+      <div className="page-header flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="page-title">Payments</h1>
           <p className="page-subtitle">Track revenue, dues, and payment history.</p>
         </div>
         <button onClick={openAddModal} className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Record Payment
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Record </span>Payment
         </button>
       </div>
 
@@ -158,44 +158,46 @@ export default function Payments() {
             <p className="font-medium">No payments found</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/5">
-                {['Member', 'Amount', 'Method', 'Date', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="text-left text-xs font-medium text-white/40 px-4 py-3 uppercase tracking-wider">{h}</th>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="border-b border-white/5">
+                  {['Member', 'Amount', 'Method', 'Date', 'Status', 'Actions'].map((h) => (
+                    <th key={h} className="text-left text-xs font-medium text-white/40 px-4 py-3 uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p, i) => (
+                  <motion.tr
+                    key={p._id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-sm text-white">{p.memberId?.name || '—'}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-emerald-400">₹{p.amount?.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm text-white/50 capitalize">{p.paymentMethod}</td>
+                    <td className="px-4 py-3 text-sm text-white/50">{new Date(p.date).toLocaleDateString()}</td>
+                    <td className="px-4 py-3">
+                      <span className={statusBadge(p.status)}>{p.status}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => openEditModal(p)} className="p-2 rounded-lg text-white/40 hover:text-primary-400 hover:bg-primary-500/10 transition-all">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((p, i) => (
-                <motion.tr
-                  key={p._id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors"
-                >
-                  <td className="px-4 py-3 text-sm text-white">{p.memberId?.name || '—'}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-emerald-400">₹{p.amount?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-sm text-white/50 capitalize">{p.paymentMethod}</td>
-                  <td className="px-4 py-3 text-sm text-white/50">{new Date(p.date).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <span className={statusBadge(p.status)}>{p.status}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEditModal(p)} className="p-2 rounded-lg text-white/40 hover:text-primary-400 hover:bg-primary-500/10 transition-all">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         )}
       </motion.div>
 

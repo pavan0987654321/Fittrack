@@ -66,7 +66,7 @@ export default function Plans() {
 
   return (
     <DashboardLayout>
-      <div className="page-header flex items-start justify-between">
+      <div className="page-header flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="page-title">{isAdmin ? 'Membership Plans' : 'Explore Plans'}</h1>
           <p className="page-subtitle">
@@ -77,7 +77,7 @@ export default function Plans() {
         </div>
         {isAdmin && (
           <button onClick={openAddModal} className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" /> New Plan
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New </span>Plan
           </button>
         )}
       </div>

@@ -30,12 +30,24 @@ const memberNav = [
 ];
 
 export default function DashboardLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { user, logout } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Reactive isMobile — listen to window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(true);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -52,8 +64,6 @@ export default function DashboardLayout({ children }) {
     logout();
     navigate('/login');
   };
-
-  const isMobile = window.innerWidth < 768;
 
   // Auto-close sidebar on mobile after navigating
   useEffect(() => {
@@ -200,10 +210,10 @@ export default function DashboardLayout({ children }) {
         <header className="h-16 border-b border-white/5 bg-dark-900/80 backdrop-blur-sm flex items-center justify-between px-4 md:px-6 flex-shrink-0">
           <div className="flex items-center gap-3 flex-1">
             <button
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => setSidebarOpen(prev => !prev)}
               className="md:hidden p-2 -ml-2 text-white/50 hover:text-white transition-colors"
             >
-              <Menu className="w-6 h-6" />
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <div className="relative flex-1 max-w-sm hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
@@ -254,7 +264,7 @@ export default function DashboardLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}

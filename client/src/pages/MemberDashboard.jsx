@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Dumbbell, Calendar, CreditCard, CheckCircle2, AlertCircle,
   TrendingUp, Scale, Ruler, Target, Edit3, X, Save, Activity,
-  ChevronUp, ChevronDown, Bell, Clock, Zap, CheckSquare,
+  ChevronUp, ChevronDown, Bell, Clock, Zap, CheckSquare, AlertTriangle,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -240,20 +240,20 @@ export default function MemberDashboard() {
           <h1 className="page-title">My Profile</h1>
           <p className="page-subtitle">Welcome back, {user?.name}! Here's your fitness overview.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <motion.button
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
             onClick={() => setShowSubscribe(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-500/20 to-accent-500/20 text-primary-300 border border-primary-500/30 hover:from-primary-500/30 hover:to-accent-500/30 transition-all text-sm font-medium"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-primary-500/20 to-accent-500/20 text-primary-300 border border-primary-500/30 hover:from-primary-500/30 hover:to-accent-500/30 transition-all text-sm font-medium"
           >
-            <Bell className="w-4 h-4" /> Subscribe to Plan
+            <Bell className="w-4 h-4" /> <span className="hidden sm:inline">Subscribe to </span>Plan
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
             onClick={() => setShowEdit(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white transition-all text-sm font-medium"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white transition-all text-sm font-medium"
           >
-            <Edit3 className="w-4 h-4" /> Edit Profile
+            <Edit3 className="w-4 h-4" /> <span className="hidden sm:inline">Edit </span>Profile
           </motion.button>
         </div>
       </div>
@@ -527,7 +527,7 @@ export default function MemberDashboard() {
 
         {/* 30-day calendar grid */}
         <div className="p-5">
-          <div className="grid grid-cols-10 gap-1.5">
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 sm:gap-1.5">
             {calendarDays.map(day => (
               <div key={day.key} className="flex flex-col items-center gap-1" title={`${day.label} — ${day.status || 'no record'}`}>
                 <span className="text-[9px] text-white/25 leading-none">{day.dayLabel.slice(0, 1)}</span>
