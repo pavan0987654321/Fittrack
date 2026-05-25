@@ -37,9 +37,11 @@ function PublicRoute({ children }) {
   return children;
 }
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 export default function App() {
   return (
-    <>
+    <ErrorBoundary>
       <Toaster 
         position="top-right" 
         toastOptions={{ 
@@ -131,6 +133,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </ErrorBoundary>
   );
 }

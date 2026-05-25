@@ -64,7 +64,11 @@ app.use((req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+  const isDev = process.env.NODE_ENV !== 'production';
+  res.status(500).json({ 
+    message: 'Internal Server Error', 
+    error: isDev ? err.message : 'An unexpected problem occurred' 
+  });
 });
 
 // ─── MongoDB Connection ────────────────────────────────────────────────────────
