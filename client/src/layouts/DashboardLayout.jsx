@@ -5,10 +5,11 @@ import {
   LayoutDashboard, Users, Dumbbell, CreditCard, UserCheck,
   LogOut, Menu, X, ChevronRight, Bell, Search,
   Zap, CheckSquare, FlaskConical, UserCircle, ArrowRight,
+  Save, Loader2, CheckCircle, AlertCircle, Lock, Mail, User,
 } from 'lucide-react';
 import useAuthStore from '../context/useAuthStore';
 import NotificationDropdown from '../components/NotificationDropdown';
-import { memberService, trainerService, planService, paymentService } from '../services/api';
+import { memberService, trainerService, planService, paymentService, authService } from '../services/api';
 
 /* ─────────────────────────────────────────────────────────────
    Nav configs
@@ -282,14 +283,207 @@ function GlobalSearch({ userRole }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Profile Settings Modal
+───────────────────────────────────────────────────────────── */
+function ProfileModal({ open, onClose, user, setAuth }) {
+  const [form, setForm]     = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError]   = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setForm({ name: user?.name || '', email: user?.email || '', password: '', confirmPassword: '' });
+      setSuccess('');
+      setError('');
+    }
+  }, [open, user]);
+
+  const handleChange = (e) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setError('');
+    setSuccess('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (form.password && form.password !== form.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (form.password && form.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const payload = { name: form.name, email: form.email };
+      if (form.password) payload.password = form.password;
+      const res = await authService.updateProfile(payload);
+      const { token, ...updatedUser } = res.data;
+      setAuth(updatedUser, token);
+      setSuccess('Profile updated successfully!');
+      setForm(prev => ({ ...prev, password: '', confirmPassword: '' }));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update profile.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fieldStyle = {
+    width: '100%',
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '10px',
+    padding: '10px 12px 10px 38px',
+    fontSize: '14px',
+    color: '#fff',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 900, backdropFilter: 'blur(4px)' }}
+          />
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'fixed', top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '100%', maxWidth: '420px',
+              background: '#0f172a',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '20px',
+              padding: '28px',
+              zIndex: 901,
+              boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #6574f3, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserCircle size={18} color="#fff" />
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#fff' }}>Profile Settings</h2>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Update your account details</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', display: 'flex' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Avatar */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #6574f3, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, color: '#fff', boxShadow: '0 8px 24px rgba(101,116,243,0.35)' }}>
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+            </div>
+
+            {/* Feedback */}
+            <AnimatePresence>
+              {(error || success) && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px',
+                    padding: '10px 14px', borderRadius: '10px', fontSize: '13px',
+                    background: error ? 'rgba(239,68,68,0.1)' : 'rgba(52,211,153,0.1)',
+                    border: `1px solid ${error ? 'rgba(239,68,68,0.25)' : 'rgba(52,211,153,0.25)'}`,
+                    color: error ? '#f87171' : '#34d399',
+                  }}
+                >
+                  {error ? <AlertCircle size={15} /> : <CheckCircle size={15} />}
+                  {error || success}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Name */}
+              <div style={{ position: 'relative' }}>
+                <User size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                <input name="name" type="text" placeholder="Full Name" value={form.name} onChange={handleChange} required style={fieldStyle} />
+              </div>
+              {/* Email */}
+              <div style={{ position: 'relative' }}>
+                <Mail size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                <input name="email" type="email" placeholder="Email Address" value={form.email} onChange={handleChange} required style={fieldStyle} />
+              </div>
+              {/* Divider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>change password (optional)</span>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+              </div>
+              {/* New Password */}
+              <div style={{ position: 'relative' }}>
+                <Lock size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                <input name="password" type="password" placeholder="New Password" value={form.password} onChange={handleChange} style={fieldStyle} />
+              </div>
+              {/* Confirm Password */}
+              <div style={{ position: 'relative' }}>
+                <Lock size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                <input name="confirmPassword" type="password" placeholder="Confirm New Password" value={form.confirmPassword} onChange={handleChange} style={fieldStyle} />
+              </div>
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  width: '100%', padding: '12px', borderRadius: '10px', border: 'none',
+                  background: 'linear-gradient(135deg, #5145cd, #7c3aed)',
+                  color: '#fff', fontWeight: 700, fontSize: '14px',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  opacity: saving ? 0.7 : 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  marginTop: '4px', boxShadow: '0 4px 16px rgba(101,116,243,0.3)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {saving
+                  ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</>
+                  : <><Save size={15} /> Save Changes</>
+                }
+              </button>
+            </form>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
    Main Layout
 ───────────────────────────────────────────────────────────── */
 export default function DashboardLayout({ children }) {
   const [isMobile, setIsMobile]     = useState(window.innerWidth < 768);
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profileOpen, setProfileOpen]   = useState(false);
   const dropdownRef = useRef(null);
-  const { user, logout } = useAuthStore();
+  const { user, logout, setAuth } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -498,7 +692,10 @@ export default function DashboardLayout({ children }) {
                         <p className="text-xs text-white/40 truncate mt-0.5">{user?.email || 'admin@fittrack.com'}</p>
                       </div>
                       <div className="py-2">
-                        <button className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                        <button
+                          onClick={() => { setDropdownOpen(false); setProfileOpen(true); }}
+                          className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                        >
                           <UserCircle className="w-4 h-4" /> Profile Settings
                         </button>
                       </div>
@@ -531,6 +728,14 @@ export default function DashboardLayout({ children }) {
 
         </div>{/* end main content */}
       </div>{/* end flex row */}
+
+      {/* Profile Modal */}
+      <ProfileModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        user={user}
+        setAuth={setAuth}
+      />
     </div>
   );
 }
