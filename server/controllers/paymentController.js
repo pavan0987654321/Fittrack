@@ -2,12 +2,20 @@ const Payment = require('../models/Payment');
 const Member = require('../models/Member');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { DEMO_PAYMENTS } = require('../demoData');
 
 // @desc    Get all payments
 // @route   GET /api/payments
 // @access  Private
 const getPayments = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      let list = [...DEMO_PAYMENTS];
+      const { status, memberId } = req.query;
+      if (status) list = list.filter(p => p.status === status);
+      if (memberId) list = list.filter(p => p.memberId?._id === memberId);
+      return res.json({ payments: list, total: list.length, page: 1, pages: 1 });
+    }
     const { status, memberId, page = 1, limit = 10 } = req.query;
     const query = {};
     if (status) query.status = status;
@@ -32,6 +40,10 @@ const getPayments = async (req, res) => {
 // @access  Private
 const getPayment = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      const p = DEMO_PAYMENTS.find(x => x._id === req.params.id) || DEMO_PAYMENTS[0];
+      return res.json(p);
+    }
     const payment = await Payment.findById(req.params.id)
       .populate('memberId', 'name email phone')
       .populate('planId', 'name price');
@@ -46,6 +58,7 @@ const getPayment = async (req, res) => {
 // @route   POST /api/payments
 // @access  Private/Admin
 const createPayment = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const payment = await Payment.create(req.body);
 
@@ -73,6 +86,7 @@ const createPayment = async (req, res) => {
 // @route   PUT /api/payments/:id
 // @access  Private/Admin
 const updatePayment = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const originalPayment = await Payment.findById(req.params.id);
     const wasPaid = originalPayment?.status === 'paid';
@@ -106,6 +120,7 @@ const updatePayment = async (req, res) => {
 // @route   DELETE /api/payments/:id
 // @access  Private/Admin
 const deletePayment = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const payment = await Payment.findByIdAndDelete(req.params.id);
     if (!payment) return res.status(404).json({ message: 'Payment not found' });
@@ -120,6 +135,21 @@ const deletePayment = async (req, res) => {
 // @access  Private
 const getPaymentStats = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      return res.json({
+        totalRevenue: 15994,
+        pending: 0,
+        paid: 8,
+        overdue: 0,
+        monthlyRevenue: [
+          { _id: { year: 2025, month: 5 }, revenue: 2999 },
+          { _id: { year: 2025, month: 4 }, revenue: 1998 },
+          { _id: { year: 2025, month: 3 }, revenue: 3998 },
+          { _id: { year: 2025, month: 2 }, revenue: 2999 },
+          { _id: { year: 2025, month: 1 }, revenue: 1999 },
+        ],
+      });
+    }
     const totalRevenue = await Payment.aggregate([
       { $match: { status: 'paid' } },
       { $group: { _id: null, total: { $sum: '$amount' } } },

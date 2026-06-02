@@ -1,13 +1,18 @@
 const Member = require('../models/Member');
 const Payment = require('../models/Payment');
 const Attendance = require('../models/Attendance');
+const { DEMO_ANALYTICS } = require('../demoData');
+
 
 // @desc    Get comprehensive analytics dashboard data
 // @route   GET /api/analytics
 // @access  Private/Admin
 const getAnalytics = async (req, res) => {
   try {
-    const { timeframe = '30days' } = req.query; // '7days', '30days', '6months'
+    if (req.user?.isDemo) return res.json(DEMO_ANALYTICS);
+
+    const { timeframe = '30days' } = req.query;
+
     
     // Determine the date filter range
     const now = new Date();

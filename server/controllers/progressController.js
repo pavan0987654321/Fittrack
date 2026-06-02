@@ -1,10 +1,12 @@
 const Progress = require('../models/Progress');
 const Member = require('../models/Member');
+const { DEMO_PROGRESS } = require('../demoData');
 
 // @desc    Add a progress entry (weight snapshot)
 // @route   POST /api/progress
 // @access  Private (member adds their own; admin/trainer can add for any)
 const addProgress = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const { memberId, weight, date, notes } = req.body;
 
@@ -41,12 +43,11 @@ const addProgress = async (req, res) => {
 // @access  Private
 const getProgress = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json(DEMO_PROGRESS);
     const { memberId } = req.params;
-
     const entries = await Progress.find({ memberId })
       .sort({ date: 1 })
       .lean();
-
     res.json(entries);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -58,13 +59,12 @@ const getProgress = async (req, res) => {
 // @access  Private (member only)
 const getMyProgress = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json(DEMO_PROGRESS);
     const memberRecord = await Member.findOne({ email: req.user.email });
     if (!memberRecord) return res.status(404).json({ message: 'Member profile not found' });
-
     const entries = await Progress.find({ memberId: memberRecord._id })
       .sort({ date: 1 })
       .lean();
-
     res.json(entries);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -75,6 +75,7 @@ const getMyProgress = async (req, res) => {
 // @route   DELETE /api/progress/:id
 // @access  Private
 const deleteProgress = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     await Progress.findByIdAndDelete(req.params.id);
     res.json({ message: 'Progress entry deleted' });

@@ -1,10 +1,18 @@
 const Member = require('../models/Member');
+const { DEMO_MEMBERS } = require('../demoData');
 
 // @desc    Get all members
 // @route   GET /api/members
 // @access  Private
 const getMembers = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      let list = [...DEMO_MEMBERS];
+      const { status, search } = req.query;
+      if (status) list = list.filter(m => m.status === status);
+      if (search) list = list.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
+      return res.json({ members: list, total: list.length, page: 1, pages: 1 });
+    }
     const { status, search, trainerAssigned, page = 1, limit = 10 } = req.query;
     const query = {};
     if (status) query.status = status;
@@ -30,6 +38,10 @@ const getMembers = async (req, res) => {
 // @access  Private
 const getMember = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      const m = DEMO_MEMBERS.find(x => x._id === req.params.id) || DEMO_MEMBERS[0];
+      return res.json(m);
+    }
     const member = await Member.findById(req.params.id)
       .populate('membershipPlan', 'name price duration')
       .populate('trainerAssigned', 'name specialty phone');
@@ -44,6 +56,7 @@ const getMember = async (req, res) => {
 // @route   POST /api/members
 // @access  Private/Admin
 const createMember = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const member = await Member.create(req.body);
     res.status(201).json(member);
@@ -56,6 +69,7 @@ const createMember = async (req, res) => {
 // @route   PUT /api/members/:id
 // @access  Private/Admin
 const updateMember = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const member = await Member.findByIdAndUpdate(req.params.id, req.body, {
       new: true, runValidators: true,
@@ -71,6 +85,7 @@ const updateMember = async (req, res) => {
 // @route   DELETE /api/members/:id
 // @access  Private/Admin
 const deleteMember = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const member = await Member.findByIdAndDelete(req.params.id);
     if (!member) return res.status(404).json({ message: 'Member not found' });
@@ -85,6 +100,9 @@ const deleteMember = async (req, res) => {
 // @access  Private
 const getMemberStats = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      return res.json({ total: 8, active: 5, inactive: 2, expired: 1 });
+    }
     const total = await Member.countDocuments();
     const active = await Member.countDocuments({ status: 'active' });
     const inactive = await Member.countDocuments({ status: 'inactive' });

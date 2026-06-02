@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { DEMO_USER } = require('../demoData');
+
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -219,5 +221,22 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile };
+// @desc    Demo login — returns a short-lived demo JWT, never touches real data
+// @route   POST /api/auth/demo-login
+// @access  Public
+const demoLogin = (req, res) => {
+  try {
+    const token = jwt.sign(
+      { isDemo: true, id: 'demo-admin-0001' },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+    res.json({ ...DEMO_USER, token });
+  } catch (error) {
+    res.status(500).json({ message: 'Could not create demo session' });
+  }
+};
+
+module.exports = { register, login, getMe, updateProfile, demoLogin };
+
 

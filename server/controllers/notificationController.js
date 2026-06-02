@@ -1,12 +1,14 @@
 const Notification = require('../models/Notification');
 const Member = require('../models/Member');
 const User = require('../models/User');
+const { DEMO_NOTIFICATIONS } = require('../demoData');
 
 // @desc    Get user notifications
 // @route   GET /api/notifications
 // @access  Private
 const getUserNotifications = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json(DEMO_NOTIFICATIONS);
     const notifications = await Notification.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
       .limit(50);
@@ -21,6 +23,7 @@ const getUserNotifications = async (req, res) => {
 // @access  Private
 const markAsRead = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json({ _id: req.params.id, isRead: true });
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       { isRead: true },
@@ -40,6 +43,7 @@ const markAsRead = async (req, res) => {
 // @access  Private
 const markAllAsRead = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json({ message: 'All notifications marked as read' });
     await Notification.updateMany(
       { userId: req.user._id, isRead: false },
       { isRead: true }

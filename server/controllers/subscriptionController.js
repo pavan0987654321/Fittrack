@@ -4,11 +4,13 @@ const Plan = require('../models/Plan');
 const Payment = require('../models/Payment');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { DEMO_SUBSCRIPTIONS } = require('../demoData');
 
 // @desc    Member creates a subscription request
 // @route   POST /api/subscriptions/request
 // @access  Private (member)
 const createRequest = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const { planId, phone, preferredDate, preferredTime, message } = req.body;
 
@@ -69,6 +71,9 @@ const createRequest = async (req, res) => {
 // @access  Private/Admin
 const getAllRequests = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      return res.json({ requests: DEMO_SUBSCRIPTIONS, total: DEMO_SUBSCRIPTIONS.length, page: 1 });
+    }
     const { status, page = 1, limit = 20 } = req.query;
     const query = {};
     if (status) query.status = status;
@@ -92,6 +97,7 @@ const getAllRequests = async (req, res) => {
 // @access  Private/Admin
 const getPendingCount = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json({ count: 1 });
     const count = await SubscriptionRequest.countDocuments({ status: 'pending' });
     res.json({ count });
   } catch (error) {
@@ -104,6 +110,7 @@ const getPendingCount = async (req, res) => {
 // @access  Private (member)
 const getMyRequests = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json([]);
     const memberRecord = await Member.findOne({ email: req.user.email });
     if (!memberRecord) return res.json([]);
 
@@ -121,6 +128,7 @@ const getMyRequests = async (req, res) => {
 // @route   PATCH /api/subscriptions/:id/approve
 // @access  Private/Admin
 const approveRequest = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const request = await SubscriptionRequest.findById(req.params.id)
       .populate('planId', 'name price duration');
@@ -194,6 +202,7 @@ const approveRequest = async (req, res) => {
 // @route   PATCH /api/subscriptions/:id/reject
 // @access  Private/Admin
 const rejectRequest = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const { reason } = req.body;
     const request = await SubscriptionRequest.findById(req.params.id);

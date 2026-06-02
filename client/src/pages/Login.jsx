@@ -75,17 +75,12 @@ export default function Login() {
     setDemoLoading(true);
     setError('');
     try {
-      try {
-        await authService.register({ name: 'Admin User', email: 'admin@fittrack.com', password: 'admin123', role: 'admin' });
-      } catch { /* already exists */ }
-      const res = await authService.login({ email: 'admin@fittrack.com', password: 'admin123' });
+      const res = await authService.demoLogin();
       const { token, ...user } = res.data;
       setAuth(user, token);
-      if (user.role === 'admin') navigate('/admin-dashboard');
-      else if (user.role === 'trainer') navigate('/trainer-dashboard');
-      else navigate('/member-dashboard');
+      navigate('/admin-dashboard');
     } catch {
-      setError('Demo login failed. Is the backend server running on port 5000?');
+      setError('Demo login failed. Is the backend server running?');
     } finally {
       setDemoLoading(false);
     }
@@ -338,7 +333,7 @@ export default function Login() {
         {/* Demo hint */}
         <div style={{ textAlign: 'center', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', animation: 'pulse 2s infinite' }} />
-          <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Demo: admin@fittrack.com / admin123</span>
+          <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: '12px' }}>Demo uses isolated fake data — no real customers exposed</span>
         </div>
       </motion.div>
 

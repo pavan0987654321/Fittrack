@@ -1,14 +1,15 @@
 const Trainer = require('../models/Trainer');
+const { DEMO_TRAINERS } = require('../demoData');
 
 // @desc    Get all trainers
 // @route   GET /api/trainers
 // @access  Private
 const getTrainers = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json(DEMO_TRAINERS);
     const { status } = req.query;
     const query = {};
     if (status) query.status = status;
-
     const trainers = await Trainer.find(query)
       .populate('assignedMembers', 'name email')
       .sort({ createdAt: -1 });
@@ -23,6 +24,10 @@ const getTrainers = async (req, res) => {
 // @access  Private
 const getTrainer = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      const t = DEMO_TRAINERS.find(x => x._id === req.params.id) || DEMO_TRAINERS[0];
+      return res.json(t);
+    }
     const trainer = await Trainer.findById(req.params.id)
       .populate('assignedMembers', 'name email phone');
     if (!trainer) return res.status(404).json({ message: 'Trainer not found' });
@@ -36,6 +41,7 @@ const getTrainer = async (req, res) => {
 // @route   POST /api/trainers
 // @access  Private/Admin
 const createTrainer = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const trainer = await Trainer.create(req.body);
     res.status(201).json(trainer);
@@ -48,6 +54,7 @@ const createTrainer = async (req, res) => {
 // @route   PUT /api/trainers/:id
 // @access  Private/Admin
 const updateTrainer = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const trainer = await Trainer.findByIdAndUpdate(req.params.id, req.body, {
       new: true, runValidators: true,
@@ -63,6 +70,7 @@ const updateTrainer = async (req, res) => {
 // @route   DELETE /api/trainers/:id
 // @access  Private/Admin
 const deleteTrainer = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const trainer = await Trainer.findByIdAndDelete(req.params.id);
     if (!trainer) return res.status(404).json({ message: 'Trainer not found' });

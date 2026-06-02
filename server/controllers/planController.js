@@ -1,10 +1,12 @@
 const Plan = require('../models/Plan');
+const { DEMO_PLANS } = require('../demoData');
 
 // @desc    Get all plans
 // @route   GET /api/plans
 // @access  Private
 const getPlans = async (req, res) => {
   try {
+    if (req.user?.isDemo) return res.json(DEMO_PLANS);
     const { status } = req.query;
     const query = {};
     if (status) query.status = status;
@@ -20,6 +22,10 @@ const getPlans = async (req, res) => {
 // @access  Private
 const getPlan = async (req, res) => {
   try {
+    if (req.user?.isDemo) {
+      const p = DEMO_PLANS.find(x => x._id === req.params.id) || DEMO_PLANS[0];
+      return res.json(p);
+    }
     const plan = await Plan.findById(req.params.id);
     if (!plan) return res.status(404).json({ message: 'Plan not found' });
     res.json(plan);
@@ -32,6 +38,7 @@ const getPlan = async (req, res) => {
 // @route   POST /api/plans
 // @access  Private/Admin
 const createPlan = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const plan = await Plan.create(req.body);
     res.status(201).json(plan);
@@ -44,6 +51,7 @@ const createPlan = async (req, res) => {
 // @route   PUT /api/plans/:id
 // @access  Private/Admin
 const updatePlan = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const plan = await Plan.findByIdAndUpdate(req.params.id, req.body, {
       new: true, runValidators: true,
@@ -59,6 +67,7 @@ const updatePlan = async (req, res) => {
 // @route   DELETE /api/plans/:id
 // @access  Private/Admin
 const deletePlan = async (req, res) => {
+  if (req.user?.isDemo) return res.status(403).json({ message: 'Demo mode is read-only. No changes are saved.' });
   try {
     const plan = await Plan.findByIdAndDelete(req.params.id);
     if (!plan) return res.status(404).json({ message: 'Plan not found' });
